@@ -1,0 +1,271 @@
+#!ipxe
+
+# Variables are specified in boot.ipxe.cfg
+
+# Some menu defaults
+# set menu-timeout 0 if no client-specific settings found
+isset ${menu-timeout} || set menu-timeout 0
+set submenu-timeout ${menu-timeout}
+isset ${menu-default} || set menu-default exit
+
+# Figure out if client is 64-bit capable
+cpuid --ext 29 && set arch x64 || set arch x86
+cpuid --ext 29 && set archl amd64 || set archl i386
+
+###################### MAIN MENU ####################################
+
+:start
+menu iPXE boot menu for NEWIFI3
+item --gap --             ------------------------- Operating systems ------------------------------
+item --key w windows      Boot Windows from iSCSI newifi3
+item --key u ubuntu       Boot Ubuntu20.04 server from iSCSI newifi3
+item --key t ubuntu14     Boot Ubuntu14.04 Server from iSCSI newifi3
+item --key y ubuntulive   Boot ubuntu20.04.2LTS Desktop Live
+item --key w ubuntu14live     Boot ubuntu14.04LTS Desktop Live
+item --key o centos       Boot CentOS from iSCSI
+item --key j ubuntu1404         Boot ubuntu14.04 Desktop from iSCSI sinology NAS
+item --key k ubuntud         Boot ubuntu20.04 Desktop from iSCSI sinology NAS
+item --gap --             ------------------------- Tools and utilities ----------------------------
+item --key d menu-diag    System tools...
+item --key i menu-install Installers...
+item --gap --             ------------------------- Advanced options -------------------------------
+item --key c config       Configure settings
+item shell                Drop to iPXE shell
+item reboot               Reboot computer
+item --key p pxelinux	  ChainLoad Pxelinux
+item
+item --key x exit         Exit iPXE and continue BIOS boot
+choose --timeout ${menu-timeout} --default ${menu-default} selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+
+:shell
+echo Type 'exit' to get the back to the menu
+shell
+set menu-timeout 0
+set submenu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reboot
+reboot
+
+:exit
+exit
+
+:config
+config
+goto start
+
+:back
+set submenu-timeout 0
+clear submenu-default
+goto start
+
+############ MAIN MENU ITEMS ############
+
+:windows
+echo Booting Windows from iSCSI for ${initiator-iqn}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target1
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:ubuntu
+echo Booting Ubuntu from iSCSI for ${initiator-iqn}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target3
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:ubuntu14
+echo Booting Ubuntu14 from iSCSI for ${initiator-iqn}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target.ubuntu14
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:ubuntulive
+echo Booting ubuntu20.04.2 live
+set server_ip 192.168.1.1
+set nfs_path /mnt/sda1/nfs/ubuntu
+kernel nfs://${server_ip}${nfs_path}/casper/vmlinuz || read void
+initrd nfs://${server_ip}${nfs_path}/casper/initrd || read void
+imgargs vmlinuz initrd=initrd root=/dev/nfs boot=casper netboot=nfs nfsroot=${server_ip}:${nfs_path} ip=dhcp locale=zh_CN splash quiet -- || read void
+boot || read void
+
+:ubuntu14live
+echo Booting ubuntu14.04 live
+set server_ip 192.168.1.1
+set nfs_path /mnt/sda1/nfs/ubuntu14
+kernel nfs://${server_ip}${nfs_path}/casper/vmlinuz.efi || read void
+initrd nfs://${server_ip}${nfs_path}/casper/initrd || read void
+imgargs vmlinuz.efi initrd=initrd root=/dev/nfs boot=casper netboot=nfs nfsroot=${server_ip}:${nfs_path} ip=dhcp locale=zh_CN splash quiet -- || read void
+boot || read void
+
+:centos
+echo Booting CentOS from iSCSI for ${initiator-iqn}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target3
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:ubuntu1404
+echo Booting ubuntu1404 from iSCSI for iqn.2000-01.com.synology:NAS
+set root-path iscsi:192.168.111.2:::1:iqn.2000-01.com.synology:NAS.ubuntu14
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:ubuntud
+echo Booting ubuntu2004 from iSCSI for iqn.2000-01.com.synology:NAS.ubuntu
+set root-path iscsi:192.168.111.2:::1:iqn.2000-01.com.synology:NAS.ubuntu
+set keep-san 1
+sanboot ${root-path} || goto failed
+goto start
+
+:pxelinux
+chain pxelinux.0
+
+###################### SYSTEM TOOL MENU #############################
+
+:menu-diag
+menu Diagnostic tools
+item memtest       Memtest86+
+item win8pe         Win8PE
+item win10pe         Win10PE
+item slitaz4        Slitaz4.0cn
+item slitaz5         Slitaz5
+item slitaz5cn	     Slitaz5-cn64
+item slitaz5cn32	Slitaz5-cn32
+item slitaz5cn64efi	Slitaz5-cn64-efi
+item boot2docker     boot2docker.iso
+item slitazdocker      slitaz-docker.iso
+item
+item --key 0x08 back Back to top menu...
+iseq ${menu-default} menu-diag && isset ${submenu-default} && goto menu-diag-timed ||
+choose selected && goto ${selected} || goto start
+:menu-diag-timed
+choose --timeout ${submenu-timeout} --default ${submenu-default} selected && goto ${selected} || goto start
+
+:memtest
+set base-url http://${nas_ip}:88/tools
+initrd ${base-url}/memtest86_5.01.iso
+chain memdisk iso raw || goto failed
+goto start
+
+:win8pe
+set base-url nfs://192.168.1.1/mnt/sda1/nfs
+initrd ${base-url}/win8pe.iso
+chain memdisk iso raw || goto failed
+goto start
+
+:win10pe
+set base-url nfs://192.168.1.1/mnt/sda1/nfs
+initrd ${base-url}/win10pe.iso
+chain memdisk iso raw || goto failed
+goto start
+
+:slitaz4
+initrd nfs://192.168.1.1/mnt/sda1/nfs/slitaz4.iso || goto failed
+chain memdisk iso raw || goto failed
+goto start
+
+:slitaz5
+kernel http://www.slitaz.cn:8083/dl/slitaz/iso/rolling/boot64/bzImage64 || goto failed
+initrd http://www.slitaz.cn:8083/dl/slitaz/iso/rolling/boot64/rootfs.gz || goto failed
+imgargs bzImage64 initrd=rootfs.gz rw root=/dev/null lang=zh_CN kmap=us autologin
+boot || goto failed
+goto start
+
+:slitaz5cn
+initrd nfs://192.168.1.1/mnt/sda1/nfs/slitaz-5.0.iso || goto failed
+chain memdisk iso raw || goto failed
+goto start
+
+:slitaz5cn32
+initrd nfs://192.168.1.1/mnt/sda1/nfs/slitaz-5.0-core32-cn.iso || goto failed             
+chain memdisk iso raw || goto failed                                            
+goto start
+
+:slitaz5cn64efi                                                                    
+initrd nfs://192.168.1.1/mnt/sda1/nfs/slitaz-5.0-efi.iso || goto failed   
+chain memdisk iso raw || goto failed                                            
+goto start
+
+:boot2docker
+initrd nfs://192.168.1.1/mnt/sda1/nfs/boot2docker.iso || goto failed             
+chain memdisk iso raw || goto failed                                            
+goto start 
+
+:slitazdocker                                                                    
+initrd nfs://192.168.1.1/mnt/sda1/nfs/slitaz-docker-5.0.iso || goto failed            
+chain memdisk iso raw || goto failed                                            
+goto start
+
+############################ INSTALLER MENU #########################
+
+:menu-install
+menu Installers for ${initiator-iqn}
+item winpe-install        Hook Windows iSCSI and boot Win10PE for intallation
+item win-install          Hook Windows iSCSI  for intallation
+item ubuntu20-install       sanboot from net Ubuntu20.04 ${archl} iSCSI and install
+item ubuntu14-install       sanboot from net Ubuntu14.04 ${archl} iSCSI and install
+item centos-install         sanboot from net centos8 ${archl} iSCSI and install
+item
+item --key 0x08 back      Back to top menu...
+iseq ${menu-default} menu-install && isset ${submenu-default} && goto menu-install-timed ||
+choose selected && goto ${selected} || goto start
+:menu-install-timed
+choose --timeout ${submenu-timeout} --default ${submenu-default} selected && goto ${selected} || goto start
+
+:winpe-install
+echo Booting Windows PE ${arch} installer for ${initiator-iqn}
+echo (for installing Windows)
+set netX/gateway ${iscsi-server}
+set root-path ${base-iscsi}:target1
+set keep-san 1
+echo sanhook start...
+sanhook ${root-path} || goto failed
+set base-url http://192.168.1.1/ipxenetboot/win10pe
+kernel ${base-url}/wimboot
+initrd ${base-url}/bootmgr bootmgr
+initrd ${base-url}/boot/bcd bcd
+initrd ${base-url}/boot/boot.sdi boot.sdi
+initrd ${base-url}/sources/boot.wim boot.wim
+boot || goto failed
+goto start
+
+:win-install
+echo Booting Windows ${arch} installer for ${initiator-iqn}
+echo (for installing Windows)
+set netX/gateway ${iscsi-server}
+set root-path ${base-iscsi}
+set keep-san 1
+echo sanhook start...
+sanhook ${root-path} || goto failed
+sanboot http://192.168.1.1/openwrtdl/KB3AIK_CN.iso || goto failed
+goto start
+
+:ubuntu20-install
+echo Starting Ubuntu 20.04 ${archl} installer for ${initiator-iqn}
+sanboot http://mirrors.163.com/ubuntu/dists/focal/main/installer-amd64/current/legacy-images/netboot/mini.iso || goto failed
+goto start
+
+:ubuntu14-install
+echo Starting Ubuntu 14.04 ${archl} installer for ${initiator-iqn}
+sanboot http://mirrors.163.com/ubuntu/dists/trusty/main/installer-amd64/current/images/netboot/mini.iso || goto failed
+goto start
+
+:centos-install
+set base http://mirrors.163.com/centos/8.3.2011/BaseOS/x86_64/os
+kernel ${base}/images/pxeboot/vmlinuz initrd=initrd.img repo=${base}
+initrd ${base}/images/pxeboot/initrd.img
+boot || goto failed
+goto start

@@ -1,0 +1,107 @@
+#!ipxe
+   set menu-timeout 16000
+   iseq ${platform} efi && set menu-default win64 || set menu-default win32
+   isset ${ip} || dhcp
+   isset ${next-server} || set next-server 192.168.1.1
+ 
+#============== Set Menu ===============
+:start
+  menu iPXE Boot Menu --${platform}--${ip}
+#列项，可以指定热键，别名，添加--gap --分割线
+  item --gap --             -------------------------------- WINPE TOOL ---------------------------
+  item slitazcn				Slitaz-rolling-cn
+  item winpe-install				win10pe-install ISCSI target1
+  item ubuntu					iscsi boot UBUNTU20.04
+  item --gap --             ----------------------------------- TOOL ------------------------------
+  item maxdos				MaxDOS 9.1
+  item --gap --             -------------------------------- Advanced -----------------------------
+  item --key h local        	[H]Boot from local drive
+  item --key s shell 		[S] Drop to iPXE Shell
+  item --key r reboot		[R] Reboot the Computer
+  item --key x exit		[X] Exit iPXE and Continue BIOS Booting
+  item --key c config    	[C]Configure settings
+  item --key m msboot   	[M]Enter Windows Boot Manager Menu (BIOS)
+  
+#在默认时间到时选择默认启动项
+  choose --timeout ${menu-timeout} --default ${menu-default} selected
+  goto ${selected}
+ 
+#============ Main Menu Options =============
+
+:slitazcn
+ imgfree
+ kernel http://192.168.111.4:8083/dl/slitaz/iso/rolling/boot64/bzImage64 initrd=rootfs.gz rw root=/dev/null video=-32 lang=zh_CN kmap=us autologin || goto retry
+ initrd http://192.168.111.4:8083/dl/slitaz/iso/rolling/boot64/rootfs.gz || goto retry
+ boot || goto retry
+ goto start
+
+#启动64位PE，将PE64.wim赋值给pefile，并跳转至bootpe
+:slitazen
+imgfree
+sanboot http://ecoo.top:8083/dl/slitaz/iso/rolling/slitaz-rolling-core64-chinese.iso || goto retry
+
+:ubuntu
+echo Booting Ubuntu from iSCSI for ${initiator-iqn}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target3
+set keep-san 1
+sanboot ${root-path} || goto retry
+goto start
+
+#PE镜像启动代码块==============================
+:winpe-install
+echo Booting Windows PE ${arch} installer for ${initiator-iqn}
+echo (for installing Windows)
+set netX/gateway ${iscsi-server}
+set root-path iscsi:192.168.1.1:::1:iqn.2012-06.org.openwrt:target1
+set keep-san 1
+echo sanhook start...
+sanhook ${root-path} || goto failed
+set base-url http://192.168.1.1/ipxenetboot/efiwin10pe
+kernel ${base-url}/wimboot
+initrd ${base-url}/bootmgr.efi bootmgr.efi
+initrd ${base-url}/boot/boot.sdi boot.sdi
+initrd ${base-url}/sources/boot.wim boot.wim
+initrd ${base-url}/efi/microsoft/boot/fonts/wgl4_boot.ttf wgl4_boot.ttf
+initrd ${base-url}/efi/microsoft/boot/bcd bcd
+initrd ${base-url}/efi/boot/bootx64.efi bootx64.efi
+boot || goto failed
+goto start
+#PE镜像启动代码块==============================
+ 
+ 
+#启动MaxDOS镜像
+:maxdos
+kernel ${boot-url}/memdisk
+initrd ${boot-url}/MAXDOS9.img
+boot
+ 
+#从本地硬盘启动
+:local
+  sanboot --no-describe --drive 0x80
+ 
+#打开命令行
+:shell
+  echo Type 'exit' to go back to the menu.
+  shell
+  goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+ 
+#重启
+:reboot
+  reboot
+ 
+#退出
+:exit
+  exit
+ 
+#配置
+:config
+  config
+  goto start
+ 
+#更换启动文件
+:msboot 
+  exit

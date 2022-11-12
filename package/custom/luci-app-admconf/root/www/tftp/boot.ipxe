@@ -1,0 +1,28 @@
+#!ipxe
+
+# 运行一个全局变量脚本
+chain --autofree boot.ipxe.cfg ||
+
+# Boot <boot-url>/<boot-dir>/hostname-<hostname>.ipxe
+# 如果有 DHCP 带域名的变量脚本也可以
+isset ${hostname} && chain --replace --autofree ${boot-dir}hostname-${hostname}.ipxe ||
+
+# Boot <boot-url>/<boot-dir>/uuid-<UUID>.ipxe
+# 如果带主板 SMBIOS UUID 的变量脚本也可以
+isset ${uuid} && chain --replace --autofree ${boot-dir}uuid-${uuid}.ipxe ||
+
+# Boot <boot-url>/<boot-dir>/mac-010203040506.ipxe if script is present
+# 如果有带mac网卡地址的变量脚本也可以
+chain --replace --autofree ${boot-dir}mac-${mac:hexraw}.ipxe ||
+
+# Boot <boot-url>/<boot-dir>/pci-8086100e.ipxe if one type of
+# PCI Intel adapter is present and script is present
+chain --replace --autofree ${boot-dir}pci-${pci/${busloc}.0.2}${pci/${busloc}.2.2}.ipxe ||
+
+# Boot <boot-url>/<boot-dir>/chip-82541pi.ipxe if one type of
+# PCI Intel adapter is present and script is present
+chain --replace --autofree ${boot-dir}chip-${chip}.ipxe ||
+
+# Boot <boot-url>/menu.ipxe script if all other options have been exhausted
+# 前面都不存在的话，最后运行全局变量里设置的目录下的menu.ipxe
+chain --replace --autofree ${menu-url} ||
