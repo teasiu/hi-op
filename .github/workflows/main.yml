@@ -10,9 +10,9 @@ on:
   repository_dispatch:
   workflow_dispatch:
 
-  push:
-    branches: 
-      - main
+#  push:
+#    branches: 
+#      - main
 
 #  schedule:
 #    - cron: 0 8 * * 5
@@ -43,23 +43,23 @@ jobs:
         cd feeds/luci
         cat ../../0001-chgindex.patch | patch -p1
         cd -
-        cp recoverybox64.config .config
+        cp demo-32bit.config .config
         make defconfig
         make -j$(nproc)
-        make_ext4fs -l 64M -s bin/recoverybox64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
+        make_ext4fs -l 64M -s bin/hi-op_arm64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
         make clean
-        cp recoverybox32.config .config
+        cp demo-64bit.config .config
         make defconfig
         make -j$(nproc)
-        make_ext4fs -l 64M -s bin/recoverybox32.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
+        make_ext4fs -l 64M -s bin/hi-op_armhf.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
 
     - name: Generate release tag
       id: tag
       run: |
         echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
         touch release.txt
-        echo "🔗 recoverybox32 for histb" >> release.txt
-        echo "🔗 recoverybox64 for histb" >> release.txt
+        echo "🔗 hi-op-32bit for histb" >> release.txt
+        echo "🔗 hi-op-64bit for histb" >> release.txt
         echo "::set-output name=status::success"
 
     - name: Upload firmware to release
