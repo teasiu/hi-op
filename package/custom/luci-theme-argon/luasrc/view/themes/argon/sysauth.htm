@@ -104,6 +104,7 @@
 		<div class="login-form">
 			<a class="brand" href="/"><img src="<%=media%>/img/argon.svg" class="icon"><span
 					class="brand-text"><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %></span></a>
+			<h2>海纳思OpenWrt</h2>
 			<form class="form-login" method="post" action="<%=pcdata(luci.http.getenv("REQUEST_URI"))%>">
 
 				<%- if fuser then %>
@@ -124,6 +125,9 @@
 					<input type="submit" value="<%:Login%>" class="cbi-button cbi-button-apply" />
 				</div>
 			</form>
+			<br>e酷网 神雕固件
+			<br>
+			<br>默认密码 ecoo1234
 
 			<script type="text/javascript">//<![CDATA[
 				var input = document.getElementsByName('luci_password')[0];
