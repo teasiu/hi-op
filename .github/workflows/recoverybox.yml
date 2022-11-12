@@ -1,0 +1,88 @@
+###########################################################
+#   Description: Compile recoverybox by GitHub Actions      #
+#   Based on:  openwrt19.07.10  										  #
+#   Author: Teasiu                                        #
+###########################################################
+
+name: autobox
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+
+  push:
+    branches: 
+      - main
+
+#  schedule:
+#    - cron: 0 8 * * 5
+
+  #watch:
+  #  types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+
+    - name: Initialization Environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo -E apt-get update
+        sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync qemu-utils android-sdk-ext4-utils
+        sudo timedatectl set-timezone "Asia/Shanghai"
+
+    - name: make 64bitbox
+      run: |
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a > /dev/null 2>&1
+        cd feeds/luci
+        cat ../../0001-chgindex.patch | patch -p1
+        cd -
+        cp recoverybox64.config .config
+        make defconfig
+        make -j$(nproc)
+        make_ext4fs -l 64M -s bin/recoverybox64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
+        make clean
+        cp recoverybox32.config .config
+        make defconfig
+        make -j$(nproc)
+        make_ext4fs -l 64M -s bin/recoverybox32.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
+
+    - name: Generate release tag
+      id: tag
+      run: |
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
+        touch release.txt
+        echo "🔗 recoverybox32 for histb" >> release.txt
+        echo "🔗 recoverybox64 for histb" >> release.txt
+        echo "::set-output name=status::success"
+
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: bin/*.ext4
+
+    - name: Delete workflow runs
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 1
+        keep_minimum_runs: 3
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      with:
+        keep_latest: 3
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

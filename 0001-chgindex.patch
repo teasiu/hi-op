@@ -1,0 +1,75 @@
+From e4f49e395134f8efd3c2192039fb33fc7d16e9c8 Mon Sep 17 00:00:00 2001
+From: teasiu <teasiu@qq.com>
+Date: Mon, 8 Aug 2022 02:28:39 +0800
+Subject: [PATCH] chgindex
+
+Signed-off-by: teasiu <teasiu@qq.com>
+---
+ modules/luci-base/root/www/index.html  | 32 ++++++++++++++++++++------
+ modules/luci-base/root/www/index2.html | 10 ++++++++
+ 2 files changed, 35 insertions(+), 7 deletions(-)
+ mode change 100644 => 100755 modules/luci-base/root/www/index.html
+ create mode 100644 modules/luci-base/root/www/index2.html
+
+diff --git a/modules/luci-base/root/www/index.html b/modules/luci-base/root/www/index.html
+old mode 100644
+new mode 100755
+index 35c0ea0d32..a65ee36e87
+--- a/modules/luci-base/root/www/index.html
++++ b/modules/luci-base/root/www/index.html
+@@ -1,11 +1,29 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+-<html xmlns="http://www.w3.org/1999/xhtml">
++<!DOCTYPE html>
++<html>
++<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <head>
+-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+-<meta http-equiv="refresh" content="0; URL=cgi-bin/luci/" />
++<title>初始化进行中</title>
++<style>
++    body {
++        width: 70em;
++        margin: 0 auto;
++        font-family: Tahoma, Verdana, Arial, sans-serif;
++    }
++</style>
+ </head>
+-<body style="background-color: white">
+-<a style="color: black; font-family: arial, helvetica, sans-serif;" href="cgi-bin/luci/">LuCI - Lua Configuration Interface</a>
++<body>
++
++<header>
++	<h1>初始化进行中</h1>
++</header>
++
++
++<h2>请稍候2-3分钟尝试刷新本页。。。</h2>
++
++
++<footer>
++	版权 © <span class="year">2022</span> <a href="http://blog.ecoo.top/">www.ecoo.top</a>
++</footer>
++
+ </body>
+ </html>
+diff --git a/modules/luci-base/root/www/index2.html b/modules/luci-base/root/www/index2.html
+new file mode 100644
+index 0000000000..2929b36afb
+--- /dev/null
++++ b/modules/luci-base/root/www/index2.html
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
++<html xmlns="http://www.w3.org/1999/xhtml">
++<head>
++<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
++</head>
++<body style="background-color: white">
++<a style="color: black; font-family: arial, helvetica, sans-serif;" href="cgi-bin/luci/">Recoverybox管理入口</a>
++</body>
++</html>
+-- 
+2.25.1
+
