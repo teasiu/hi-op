@@ -1,0 +1,26 @@
+ps -efww | grep "/sbin/net_status" | grep -v "$$" | awk '{print $2}' | xargs kill -9 2> /dev/null
+
+led_flash() {
+	for i in $(seq $2);do
+		echo 1 > /sys/class/gpio/$1/value
+		sleep 0.1
+		echo 0 > /sys/class/gpio/$1/value
+		sleep 0.1
+	done
+}
+
+gpio_dev="gpio42"
+
+while :
+do
+	if [ "$(cat /sys/class/net/eth0/carrier)" == 1 ]
+	then
+		[ "$gpio_old_stat" != 1 ] && led_flash $gpio_dev 3
+		echo 1 > /sys/class/gpio/$gpio_dev/value
+	else
+		echo 0 > /sys/class/gpio/$gpio_dev/value
+	fi
+	gpio_old_stat=$(cat /sys/class/net/eth0/carrier)
+	sleep 1
+done
+

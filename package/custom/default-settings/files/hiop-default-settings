@@ -1,0 +1,25 @@
+#!/bin/sh
+
+uci set luci.main.lang='zh_cn'
+uci set luci.main.mediaurlbase='/luci-static/argon'
+uci commit luci
+
+uci set system.@system[0].timezone=CST-8
+uci set system.@system[0].zonename=Asia/Shanghai
+uci commit system
+
+echo 42 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio42/direction
+
+if [ $(uname -m) == armv7l ]; then
+ cp /etc/recoverbackup/recoverbackup_armhf /usr/bin/recoverbackup
+ cp /etc/recoverbackup/bootargs7-32.bin /usr/bin/bootargs7.bin
+else
+ cp /etc/recoverbackup/recoverbackup_arm64 /usr/bin/recoverbackup
+ cp /etc/recoverbackup/bootargs7-64.bin /usr/bin/bootargs7.bin
+fi
+
+rm -rf /tmp/luci-modulecache/
+rm -f /tmp/luci-indexcache
+
+exit 0
