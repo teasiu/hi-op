@@ -1,0 +1,5 @@
+#!/bin/sh
+
+dd if=/usr/bin/bootargs7.bin of=/dev/mmcblk0p2 bs=1024 count=1024
+sync
+reboot
