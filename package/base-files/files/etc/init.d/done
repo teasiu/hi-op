@@ -14,5 +14,7 @@ boot() {
 	# set leds to normal state
 	. /etc/diag.sh
 	set_state done
+	echo 42 > /sys/class/gpio/export
+	echo out > /sys/class/gpio/gpio42/direction
 	/sbin/net_status &
 }

@@ -8,9 +8,6 @@ uci set system.@system[0].timezone=CST-8
 uci set system.@system[0].zonename=Asia/Shanghai
 uci commit system
 
-echo 42 > /sys/class/gpio/export
-echo out > /sys/class/gpio/gpio42/direction
-
 cp /etc/recoverbackup/recoverbackup /usr/bin/recoverbackup
 
 if [ $(uname -m) == armv7l ]; then
