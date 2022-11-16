@@ -1,0 +1,14 @@
+#!/bin/sh
+
+mkdir /tmp/bak
+mount -t ext4 /dev/mmcblk0p8 /tmp/bak
+if [ -f /tmp/bak/backup-321.gz ];then
+mv /tmp/bak/backup-321.gz /tmp/bak/backup-32.gz
+else
+mv /tmp/bak/backup-641.gz /tmp/bak/backup-64.gz
+fi
+sync
+umount /tmp/bak
+dd if=/usr/bin/bootargs7.bin of=/dev/mmcblk0p2 bs=1024 count=1024
+sync
+reboot
