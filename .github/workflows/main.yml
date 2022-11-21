@@ -47,11 +47,13 @@ jobs:
         make defconfig
         make -j$(nproc)
         make_ext4fs -l 64M -s bin/hi-op_arm64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
+        cp bin/targets/armvirt/32/openwrt-armvirt-32-root.ext4.gz bin/openwrt-armvirt-32-root.ext4.gz
         make clean
         cp demo-64bit.config .config
         make defconfig
         make -j$(nproc)
         make_ext4fs -l 64M -s bin/hi-op_armhf.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
+        cp bin/targets/armvirt/64/openwrt-armvirt-64-root.ext4.gz bin/openwrt-armvirt-64-root.ext4.gz
 
     - name: Generate release tag
       id: tag
@@ -70,7 +72,9 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: bin/*.ext4
+        files: |
+          bin/*.ext4
+          bin/*.gz
 
     - name: Delete workflow runs
       uses: GitRML/delete-workflow-runs@main
