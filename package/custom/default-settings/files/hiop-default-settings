@@ -10,6 +10,7 @@ uci commit system
 
 cp /etc/recoverbackup/recoverbackup /usr/bin/recoverbackup
 cp /etc/recoverbackup/recovernas /usr/bin/recovernas
+cp /etc/recoverbackup/index.html /www/index.html
 
 if [ $(uname -m) == armv7l ]; then
  cp /etc/recoverbackup/bootargs7-32.bin /usr/bin/bootargs7.bin
