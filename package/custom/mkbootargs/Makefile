@@ -19,8 +19,15 @@ define Package/mkbootargs
   CATEGORY:=LuCI
   TITLE:=LuCI support for Default Settings
   PKGARCH:=all
-  DEPENDS:=
+  DEPENDS:=bash
 endef
+
+ifeq ($(ARCH),arm)
+	PKG_ARCH:=armhf
+endif
+ifeq ($(ARCH),aarch64)
+	PKG_ARCH:=arm64
+endif
 
 define Package/mkbootargs/description
 	Language Support Packages.
@@ -31,9 +38,10 @@ endef
 
 define Package/mkbootargs/install
 	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_BIN) ./files/emmc_bootargs_32.txt $(1)/etc/emmc_bootargs_32.txt
+	$(INSTALL_BIN) ./files/emmc_bootargs_$(PKG_ARCH).txt $(1)/etc/emmc_bootargs.txt
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) ./files/chgmac.sh $(1)/usr/bin/chgmac.sh
+	$(INSTALL_BIN) ./files/mkbootargs_$(PKG_ARCH) $(1)/usr/bin/mkbootargs
 endef
 
 $(eval $(call BuildPackage,mkbootargs))

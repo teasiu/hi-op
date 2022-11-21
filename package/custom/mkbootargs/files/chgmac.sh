@@ -1,13 +1,10 @@
 #!/bin/bash
 
-dl_url="https://dl.ecoo.top/public/update/soft_init"
-bootargs_txt="/etc/emmc_bootargs_32.txt"
+bootargs_txt="/etc/emmc_bootargs.txt"
 flash_partition="/dev/mmcblk0p2"
 
-[ "$(uname -m)" = "armv7l" ] && ARCH="armhf" || ARCH="arm64"
-
-mkbootargs_file="mkbootargs_${ARCH}"
-mkbootargs_bin="/tmp/${mkbootargs_file}"
+mkbootargs_file="mkbootargs"
+mkbootargs_bin="/usr/bin/${mkbootargs_file}"
 
 usage() {
     cat <<-EOF
@@ -53,10 +50,8 @@ if [[ ! $INPUT_ADDR =~ ${re} ]]; then
 fi
 sed -ri "s/(ethaddr=).*$/\1$INPUT_ADDR/g" ${bootargs_txt}
 
-curl ${dl_url}/${mkbootargs_file} -o ${mkbootargs_bin} || _exit 1 "下载失败，请重试"
 chmod a+x ${mkbootargs_bin}
 ${mkbootargs_bin} -s 64 -r ${bootargs_txt} -o /tmp/bootargs.bin >/dev/null || _exit 1 "生成失败，请重试"
 dd if=/tmp/bootargs.bin of=${flash_partition} bs=1024 count=1024
-rm -f ${mkbootargs_bin}
 rm -f /tmp/bootargs.bin
 echo -e "[ OK ]: 已经成功更改你的盒子MAC地址，重启即可生效"
