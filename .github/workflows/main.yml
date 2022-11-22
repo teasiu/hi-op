@@ -36,24 +36,21 @@ jobs:
         sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync qemu-utils android-sdk-ext4-utils
         sudo timedatectl set-timezone "Asia/Shanghai"
 
-    - name: make 64bitbox
+    - name: make hiop
       run: |
         ./scripts/feeds update -a
         ./scripts/feeds install -a > /dev/null 2>&1
-        cd feeds/luci
-        cat ../../0001-chgindex.patch | patch -p1
-        cd -
-        cp demo-32bit.config .config
-        make defconfig
-        make -j$(nproc)
-        make_ext4fs -l 64M -s bin/hi-op_arm64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
-        cp bin/targets/armvirt/32/openwrt-armvirt-32-root.ext4.gz bin/openwrt-armvirt-32-root.ext4.gz
-        make clean
         cp demo-64bit.config .config
         make defconfig
         make -j$(nproc)
-        make_ext4fs -l 64M -s bin/hi-op_armhf.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
+        make_ext4fs -l 64M -s bin/hi-op_arm64.ext4 build_dir/target-aarch64_generic_musl/root-armvirt
         cp bin/targets/armvirt/64/openwrt-armvirt-64-root.ext4.gz bin/openwrt-armvirt-64-root.ext4.gz
+        make clean
+        cp demo-32bit.config .config
+        make defconfig
+        make -j$(nproc)
+        make_ext4fs -l 64M -s bin/hi-op_armhf.ext4 build_dir/target-arm_cortex-a15+neon-vfpv4_musl_eabi/root-armvirt
+        cp bin/targets/armvirt/32/openwrt-armvirt-32-root.ext4.gz bin/openwrt-armvirt-32-root.ext4.gz
 
     - name: Generate release tag
       id: tag
