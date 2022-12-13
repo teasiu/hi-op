@@ -16,12 +16,10 @@ make
 编译后得到以下文件
 ```
 bin/targets/armvirt/64/openwrt-armvirt-64-root.ext4.gz
-```
 或
-```
 bin/targets/armvirt/32/openwrt-armvirt-32-root.ext4.gz
 ```
-将此文件上传到盒子海纳思系统当前位置
+### 第1种方法：将此文件上传到盒子海纳思系统当前位置
 ```
 mount /dev/mmcblk0p8 /media
 cp openwrt-armvirt-64-root.ext4.gz /media/backup-64.gz
@@ -29,6 +27,12 @@ cp openwrt-armvirt-64-root.ext4.gz /media/backup-64.gz
 cp openwrt-armvirt-32-root.ext4.gz /media/backup-32.gz
 sync
 recoverbackup
+```
+### 第2种方法：解压后替换TTL刷机包里的第9分区文档直接ttl线刷
+```
+gunzip openwrt-armvirt-64-root.ext4.gz
+得到openwrt-armvirt-64-root.ext4
+重命名为openwrt-armvirt-64-root.img
 ```
 注意：请自行判断你的盒子海纳思系统是32位还是64位并对应使用文档。
 
