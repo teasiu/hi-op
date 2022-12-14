@@ -7,7 +7,7 @@ sudo apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git
 ```bash
 ./scripts/feeds update -a
 ./scripts/feeds install -a
-cp demo-32.config .config 或者 cp demo-64.config .config
+cp demo-32bit.config .config 或者 cp demo-64bit.config .config
 make defconfig
 make
 ```
